@@ -27,12 +27,25 @@ public class Bank {
     }
 
     public void transfer(int from, int to, int amount) {
-        if (accounts[from].withdraw(amount)) {
-            accounts[to].deposit(amount);
+        //avoid deadlock in case of withdraw( a, b ) and deposit( b, a ) occurring simultaneosly
+        int lesser = Math.min( from, to );
+        int greater = Math.max( from, to );
+
+        synchronized ( accounts[lesser] ) {
+            synchronized ( accounts[greater] ) {
+                if (accounts[from].withdraw(amount)) {
+                    accounts[to].deposit(amount);
+                    System.out.printf("Account %d successfully transferred $%d to Account %d.\n", from, amount, to);
+                } else
+                    System.out.printf("Transfer of $%d from Account %d to Account %d failed.\n", amount, from, to);
+
+
+                // Uncomment line when ready to start Task 3.
+                if (shouldTest())
+                    test();
+
+            }
         }
-        
-        // Uncomment line when ready to start Task 3.
-        // if (shouldTest()) test();
     }
 
     public void test() {

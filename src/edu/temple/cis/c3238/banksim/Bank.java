@@ -17,8 +17,8 @@ public class Bank {
     private long numTransactions = 0;
     private final int initialBalance;
     private final int numAccounts;
-    Semaphore sem = new Semaphore(1);
-
+    public static Semaphore sem = new Semaphore(10);
+    
     public Bank(int numAccounts, int initialBalance) {
         this.initialBalance = initialBalance;
         this.numAccounts = numAccounts;
@@ -42,14 +42,15 @@ public class Bank {
                     System.out.printf("Account %d successfully transferred $%d to Account %d.\n", from, amount, to);
                 } else
                     System.out.printf("Transfer of $%d from Account %d to Account %d failed.\n", amount, from, to);
-                sem.release();
 
                 // Uncomment line when ready to start Task 3.
                 if (shouldTest()){
                     test();
                 }
+                sem.release();
             }
         }
+
     }
 
     public int getNumAccounts() {
@@ -61,7 +62,7 @@ public class Bank {
         return ++numTransactions % NTEST == 0;
     }
 
-    public void test() {
+    public void test(){
         new Tester( accounts, initialBalance, numAccounts, Thread.currentThread(),sem).start();
     }
 
@@ -87,7 +88,7 @@ class Tester extends Thread {
     @Override
     public void run() {
         try {
-            sem.acquire();
+            sem.acquire(10);
             System.out.println("I AM HERE !!!");
             int totalBalance = 0;
             for (Account account : accounts) {
@@ -102,10 +103,12 @@ class Tester extends Thread {
             } else {
                 System.out.printf("%-30s Total balance unchanged.\n", transferThread.toString());
             }
-            sem.release();
+            sem.release(10);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+
     }
 
 }

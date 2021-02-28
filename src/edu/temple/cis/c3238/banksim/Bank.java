@@ -18,21 +18,23 @@ public class Bank {
     private final int initialBalance;
     private final int numAccounts;
     public static Semaphore sem = new Semaphore(10);
-    
+    private boolean open = true;
+
     public Bank(int numAccounts, int initialBalance) {
         this.initialBalance = initialBalance;
         this.numAccounts = numAccounts;
         accounts = new Account[numAccounts];
         for (int i = 0; i < accounts.length; i++) {
-            accounts[i] = new Account(i, initialBalance);
+            accounts[i] = new Account(this, i, initialBalance);
         }
         numTransactions = 0;
     }
 
-    public synchronized void transfer(int from, int to, int amount) throws InterruptedException {
+    public void transfer(int from, int to, int amount) throws InterruptedException {
         //avoid deadlock in case of withdraw( a, b ) and deposit( b, a ) occurring simultaneosly
         int lesser = Math.min( from, to );
         int greater = Math.max( from, to );
+        accounts[from].waitForSufficientFunds(amount);
 
         synchronized ( accounts[lesser] ) {
             synchronized ( accounts[greater] ) {
@@ -43,7 +45,7 @@ public class Bank {
                 } else
                     System.out.printf("Transfer of $%d from Account %d to Account %d failed.\n", amount, from, to);
 
-                // Uncomment line when ready to start Task 3.
+                //test every 10 transactions
                 if (shouldTest()){
                     test();
                 }
@@ -56,8 +58,8 @@ public class Bank {
     public int getNumAccounts() {
         return numAccounts;
     }
-    
-    
+
+
     public boolean shouldTest() {
         return ++numTransactions % NTEST == 0;
     }
@@ -65,6 +67,19 @@ public class Bank {
     public void test(){
         new Tester( accounts, initialBalance, numAccounts, Thread.currentThread(),sem).start();
     }
+
+
+    synchronized boolean isOpen() {return open;}
+
+    void closeBank() {
+        synchronized (this) {
+            open = false;
+        }
+        for (Account account : accounts) {
+            synchronized (account) {account.notifyAll();}
+        }
+    }
+
 
 }
 
@@ -89,7 +104,7 @@ class Tester extends Thread {
     public void run() {
         try {
             sem.acquire(10);
-            System.out.println("I AM HERE !!!");
+
             int totalBalance = 0;
             for (Account account : accounts) {
                 System.out.printf("%-30s %s%n",

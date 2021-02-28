@@ -21,6 +21,9 @@ class TransferThread extends Thread {
     @Override
     public void run() {
         for (int i = 0; i < 10000; i++) {
+            //uncomment this to slow things down for testing
+            //try { Thread.sleep( 1000 ); } catch( InterruptedException e) { e.printStackTrace(); }
+
             int toAccount = (int) (bank.getNumAccounts() * Math.random());
             int amount = (int) (maxAmount * Math.random());
             try {
@@ -31,5 +34,6 @@ class TransferThread extends Thread {
         }
 
         System.out.printf("%-30s Account[%d] has finished with its transactions.\n", Thread.currentThread().toString(), fromAccount);
+        bank.closeBank();
     }
 }

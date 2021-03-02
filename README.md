@@ -26,8 +26,11 @@ The purpose of this project is to learn multi-thread program and solve race cond
 + Updated README.md
 
 ## Testing code
-We are using system testing where we test the program after each task and make sure the program works correctly. The test was done by the same person who finished the task, then reviewed by the other programmer after they are committed. We made sure to test everything before merge to master branch. 
-
+We are using system testing where we test the program after each task and make sure the program works correctly. The test was done by the same person who finished the task, then reviewed by the other programmer after they are committed. We made sure to test everything before merge to master branch.
+![BankOutput](BankOutput.png)
+We made sure the program run for around 10000 times for each thread, and the total balance should be unchanged.
+![Balance](Balance.png)
+We verified that the program is actually making transfers in multi-threads, and some of them should have failed.
 ## Race Condition
 ![UMLRaceCondition](RaceCondition.svg)
 Main runs 10 transfer threads concurrently, with care taken to avoid a specific account from being deposit to/withdrawn by two threads at once.

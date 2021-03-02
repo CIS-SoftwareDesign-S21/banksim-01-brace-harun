@@ -1,14 +1,8 @@
 # BankSim
 
 ## Requirements
-The purpose of this project is to learn multi-thread program and solve race condition and deadlock. We need to create a complete bank program that have multiple accounts doing transfer.
-+ Task 1: Create UML sequence diagram to explain race condition in the program
-+ Task 2: Protect against race condition --> test transfers for correctness
-+ Task 3: Refactor the method of testing into a new separate thread
-+ Task 4: Provide code protection (testing thread and transfer threads are running exclusively)
-+ Task 5: Implement a wait/signal solution for the testing thread and transfer threads
-+ Task 6: Implement a wait/notify solution to allow an account to transfer out funds if the transferring amount is greater than the account balance
-+ Task 7: Implement a solution in which all threads stop transferring (the bank is closed) whenever one thread completes its transfers
+The purpose of this project is to modify a multi-threaded banking simulator by eliminating race conditions and deadlock. The program had to be capable of processing multiple transactions at ONCE, while waiting for invalid transactions to become possible and successfully implementing concurrency.
+We started by using a UML sequence diagram to identify the cause of the race condition, then fixed the race condition accordingly. Afterwards, we refactored the testing method into its own thread and provided protection against testing/transfer threads running simulaneuosly. This required wait/signal solutions to implement proper concurrent functionality in the testing and transfer threads, as well as the Bank and Account classes. Finally, we made the bank close once a transfer thread finishes all of its trading for the day, and protected against deadlock caused by testing threads and transactions postponed due to inadequate funds.
 
 ## Teamwork
 ### Tandi:
@@ -26,11 +20,13 @@ The purpose of this project is to learn multi-thread program and solve race cond
 + Updated README.md
 
 ## Testing code
-We are using system testing where we test the program after each task and make sure the program works correctly. The test was done by the same person who finished the task, then reviewed by the other programmer after they are committed. We made sure to test everything before merge to master branch.
+We used system testing, in which we tested the program after each task and made sure the program works correctly. The test was done by the same person who finished the task, often by sleeping transfer threads during testing in order to get a clear impression of current output, then reviewed by the other programmer after they are committed. We made sure to test everything before merge to master branch.
+
 ![BankOutput](BankOutput.png)
 We made sure the program run for around 10000 times for each thread, and the total balance should be unchanged.
 ![Balance](Balance.png)
 We verified that the program is actually making transfers in multi-threads, and some of them should have failed.
+
 ## Race Condition
 ![UMLRaceCondition](RaceCondition.svg)
 Main runs 10 transfer threads concurrently, with care taken to avoid a specific account from being deposit to/withdrawn by two threads at once.

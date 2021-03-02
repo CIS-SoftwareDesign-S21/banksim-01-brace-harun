@@ -1,14 +1,8 @@
 # BankSim
 
 ## Requirements
-The purpose of this project is to learn multi-thread program and solve race condition and deadlock. We need to create a complete bank program that have multiple accounts doing transfer.
-+ Task 1: Create UML sequence diagram to explain race condition in the program
-+ Task 2: Protect against race condition --> test transfers for correctness
-+ Task 3: Refactor the method of testing into a new separate thread
-+ Task 4: Provide code protection (testing thread and transfer threads are running exclusively)
-+ Task 5: Implement a wait/signal solution for the testing thread and transfer threads
-+ Task 6: Implement a wait/notify solution to allow an account to transfer out funds if the transferring amount is greater than the account balance
-+ Task 7: Implement a solution in which all threads stop transferring (the bank is closed) whenever one thread completes its transfers
+The purpose of this project is to modify a multi-threaded banking simulator by eliminating race conditions and deadlock. The program had to be capable of processing multiple transactions at ONCE, while waiting for invalid transactions to become possible and successfully implementing concurrency.
+We started by using a UML sequence diagram to identify the cause of the race condition, then fixed the race condition accordingly. Afterwards, we refactored the testing method into its own thread and provided protection against testing/transfer threads running simulaneuosly. This required wait/signal solutions to implement proper concurrent functionality in the testing and transfer threads, as well as the Bank and Account classes. Finally, we made the bank close once a transfer thread finishes all of its trading for the day, and protected against deadlock caused by testing threads and transactions postponed due to inadequate funds.
 
 ## Teamwork
 ### Tandi:

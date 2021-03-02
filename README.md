@@ -20,7 +20,7 @@ We started by using a UML sequence diagram to identify the cause of the race con
 + Updated README.md
 
 ## Testing code
-We are using system testing where we test the program after each task and make sure the program works correctly. The test was done by the same person who finished the task, then reviewed by the other programmer after they are committed. We made sure to test everything before merge to master branch. 
+We used system testing, in which we tested the program after each task and made sure the program works correctly. The test was done by the same person who finished the task, often by sleeping transfer threads during testing in order to get a clear impression of current output, then reviewed by the other programmer after they are committed. We made sure to test everything before merge to master branch. 
 
 ## Race Condition
 ![UMLRaceCondition](RaceCondition.svg)

@@ -1,5 +1,7 @@
 package edu.temple.cis.c3238.banksim;
 
+import java.util.concurrent.Semaphore;
+
 /**
  * @author Cay Horstmann
  * @author Modified by Paul Wolfgang
@@ -15,49 +17,113 @@ public class Bank {
     private long numTransactions = 0;
     private final int initialBalance;
     private final int numAccounts;
+    public static Semaphore sem = new Semaphore(10);
+    private boolean open = true;
 
     public Bank(int numAccounts, int initialBalance) {
         this.initialBalance = initialBalance;
         this.numAccounts = numAccounts;
         accounts = new Account[numAccounts];
         for (int i = 0; i < accounts.length; i++) {
-            accounts[i] = new Account(i, initialBalance);
+            accounts[i] = new Account(this, i, initialBalance);
         }
         numTransactions = 0;
     }
 
-    public void transfer(int from, int to, int amount) {
-        if (accounts[from].withdraw(amount)) {
-            accounts[to].deposit(amount);
-        }
-        
-        // Uncomment line when ready to start Task 3.
-        // if (shouldTest()) test();
-    }
+    public void transfer(int from, int to, int amount) throws InterruptedException {
+        //avoid deadlock in case of withdraw( a, b ) and deposit( b, a ) occurring simultaneosly
+        int lesser = Math.min( from, to );
+        int greater = Math.max( from, to );
+        accounts[from].waitForSufficientFunds(amount);
 
-    public void test() {
-        int totalBalance = 0;
-        for (Account account : accounts) {
-            System.out.printf("%-30s %s%n", 
-                    Thread.currentThread().toString(), account.toString());
-            totalBalance += account.getBalance();
+        synchronized ( accounts[lesser] ) {
+            synchronized ( accounts[greater] ) {
+                sem.acquire();
+                if (accounts[from].withdraw(amount)) {
+                    accounts[to].deposit(amount);
+                    System.out.printf("Account %d successfully transferred $%d to Account %d.\n", from, amount, to);
+                } else
+                    System.out.printf("Transfer of $%d from Account %d to Account %d failed.\n", amount, from, to);
+
+                //test every 10 transactions
+                if (shouldTest()){
+                    test();
+                }
+                sem.release();
+            }
         }
-        System.out.printf("%-30s Total balance: %d\n", Thread.currentThread().toString(), totalBalance);
-        if (totalBalance != numAccounts * initialBalance) {
-            System.out.printf("%-30s Total balance changed!\n", Thread.currentThread().toString());
-            System.exit(0);
-        } else {
-            System.out.printf("%-30s Total balance unchanged.\n", Thread.currentThread().toString());
-        }
+
     }
 
     public int getNumAccounts() {
         return numAccounts;
     }
-    
-    
+
+
     public boolean shouldTest() {
         return ++numTransactions % NTEST == 0;
+    }
+
+    public void test(){
+        new Tester( accounts, initialBalance, numAccounts, Thread.currentThread(),sem).start();
+    }
+
+
+    synchronized boolean isOpen() {return open;}
+
+    void closeBank() {
+        synchronized (this) {
+            open = false;
+        }
+        for (Account account : accounts) {
+            synchronized (account) {account.notifyAll();}
+        }
+    }
+
+
+}
+
+
+class Tester extends Thread {
+
+    private final Account[] accounts;
+    private final int initialBalance;
+    private final int numAccounts;
+    private final Semaphore sem;
+    private Thread transferThread;
+
+    public Tester(Account[] accounts, final int intialBalance, final int numAccounts, Thread transferThread, Semaphore sem) {
+        this.accounts = accounts;
+        this.initialBalance = intialBalance;
+        this.numAccounts = numAccounts;
+        this.transferThread = transferThread;
+        this.sem = sem;
+    }
+
+    @Override
+    public void run() {
+        try {
+            sem.acquire(10);
+
+            int totalBalance = 0;
+            for (Account account : accounts) {
+                System.out.printf("%-30s %s%n",
+                        transferThread.toString(), account.toString());
+                totalBalance += account.getBalance();
+            }
+            System.out.printf("%-30s Total balance: %d\n", transferThread.toString(), totalBalance);
+            if (totalBalance != numAccounts * initialBalance) {
+                System.out.printf("%-30s Total balance changed!\n", transferThread.toString());
+                System.exit(0);
+            } else {
+                System.out.printf("%-30s Total balance unchanged.\n", transferThread.toString());
+            }
+            sem.release(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
 }
